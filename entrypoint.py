@@ -1,5 +1,6 @@
 import json
 import os
+import requests
 
 from github import Github
 
@@ -37,26 +38,73 @@ def find_pr_by_sha(repo, sha):
 
 
 def main():
-    gh = Github(os.getenv("GITHUB_TOKEN"))
-    event = read_json(os.getenv("GITHUB_EVENT_PATH"))
-    repo = gh.get_repo(event["repository"]["full_name"])
-    sha = event.get("after")  # The commit SHA from the push event
 
-    pr = find_pr_by_sha(repo, sha)
-    if pr is None:
-        print(f"No PR found for commit {sha}")
-        return
+    graphql_endpoint = "https://api.management.inkeep.com/graphql"
 
-    new_comment = "Inkeep sync has been started."
+    # Your GraphQL mutation
+    graphql_mutation = """
+    mutation CreateSourceSyncJob($sourceId: ID!, $type: SourceSyncJobType!) {
+    createSourceSyncJob(input: {sourceId: $sourceId, type: $type}) {
+        success
+    }
+    }
+    """
 
-    # Check for duplicated comment
-    old_comments = [c.body for c in pr.get_issue_comments()]
-    if new_comment in old_comments:
-        print("This pull request already has a duplicated comment.")
-        return
+    graphql_query = """
+    query source($sourceId: ID!) {
+        source(sourceId: $sourceId) {
+            displayName
+        }
+    }
+    """
 
-    # Add the comment
-    pr.create_issue_comment(new_comment)
+    source_id = get_actions_input("source-id")
+    api_key = get_actions_input("api-key")
+
+    # Prepare the JSON payload
+    json_payload = {
+        "query": graphql_mutation,
+        "variables": {"sourceId": source_id, "type": "INCREMENTAL"},
+    }
+
+    # query_payload = {
+    #     "query": graphql_query,
+    #     "variables": {"sourceId": source_id},
+    # }
+
+    # Headers including the Authorization token
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
+
+    # Make the GraphQL request
+    mutation_response = requests.post(
+        graphql_endpoint, headers=headers, json=json_payload
+    )
+
+    # query_response = requests.post(
+    #     graphql_endpoint, headers=headers, json=query_payload
+    # )
+
+    if mutation_response.status_code == 200:
+        gh = Github(os.getenv("GITHUB_TOKEN"))
+        event = read_json(os.getenv("GITHUB_EVENT_PATH"))
+        repo = gh.get_repo(event["repository"]["full_name"])
+        sha = event.get("after")  # The commit SHA from the push event
+
+        pr = find_pr_by_sha(repo, sha)
+        if pr is None:
+            print(f"No PR found for commit {sha}")
+            return
+
+        new_comment = f"![Inkeep Logo](https://storage.googleapis.com/public_inkeep_assetts/inkeep_logo_16h.png) [Inkeep](https://inkeep.com) AI search and chat service is syncing content for source '{source_id}'"
+
+        # Check for duplicated comment
+        old_comments = [c.body for c in pr.get_issue_comments()]
+        if new_comment in old_comments:
+            print("This pull request already has a duplicated comment.")
+            return
+
+        # Add the comment
+        pr.create_issue_comment(new_comment)
 
 
 if __name__ == "__main__":
