@@ -47,7 +47,7 @@ def main():
         print(f"No PR found for commit {sha}")
         return
 
-    new_comment = "Inkeep sync has been started"
+    new_comment = "Inkeep sync has been started."
 
     # Check for duplicated comment
     old_comments = [c.body for c in pr.get_issue_comments()]
