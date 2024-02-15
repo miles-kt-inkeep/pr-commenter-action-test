@@ -80,13 +80,21 @@ def main():
         graphql_endpoint, headers=headers, json=json_payload
     )
 
+    mutation_result = mutation_response.json()
+
     query_response = requests.post(
         graphql_endpoint, headers=headers, json=query_payload
     )
 
+    print(query_response.json())
+
     display_name = query_response.json()["data"]["source"]["displayName"]
 
-    if mutation_response.status_code == 200:
+    if (
+        "data" in mutation_result.keys()
+        and "createSourceSyncJob" in mutation_result["data"].keys()
+        and mutation_result["data"]["createSourceSyncJob"]["success"] is True
+    ):
         gh = Github(os.getenv("GITHUB_TOKEN"))
         event = read_json(os.getenv("GITHUB_EVENT_PATH"))
         repo = gh.get_repo(event["repository"]["full_name"])
