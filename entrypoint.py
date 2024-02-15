@@ -103,7 +103,7 @@ def main():
 
         pr = find_pr_by_sha(repo, sha)
         if pr is None:
-            print(f"No PR found for commit {sha}")
+            print(f"No PR found for commit {sha}.")
             return
 
         new_comment = f""":mag_right::speech_balloon: [Inkeep](https://inkeep.com) AI search and chat service is syncing content for source '{display_name}'"""
