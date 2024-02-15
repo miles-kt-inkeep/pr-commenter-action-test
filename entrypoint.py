@@ -58,15 +58,8 @@ def main():
     }
     """
 
-    source_id = get_actions_input("source-id")
-    print(source_id)
-    print("Direct ENV:", os.getenv("INPUT_SOURCE_ID"))
-    print("Direct ENV 2:", os.getenv("INPUT_SOURCE-ID"))
-    for key, value in os.environ.items():
-        print(f"test")
-        if "KEY" not in key and "SECRET" not in key:
-            print(f"{key}: {value}")
-    api_key = get_actions_input("api-key")
+    source_id = get_actions_input("sourceId")
+    api_key = get_actions_input("apiKey")
 
     # Prepare the JSON payload
     json_payload = {
