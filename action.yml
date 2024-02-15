@@ -4,10 +4,10 @@ branding:
   color: 'purple'
 description: Comment on pull requests
 inputs:
-  api-key:
+  apiKey:
     description: 'API key to authenticate the request'
     required: true
-  source-id:
+  sourceId:
     description: 'The source id for which the source sync job needs to be created.'
     required: true
 runs:
