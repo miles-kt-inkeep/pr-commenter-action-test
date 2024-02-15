@@ -106,7 +106,7 @@ def main():
             print(f"No PR found for commit {sha}")
             return
 
-        new_comment = f"""![Inkeep Logo](https://storage.googleapis.com/public_inkeep_assetts/icon_square_alpha.svg) [Inkeep](https://inkeep.com) AI search and chat service is syncing content for source '{display_name}'"""
+        new_comment = f""":mag_right::speech_balloon: [Inkeep](https://inkeep.com) AI search and chat service is syncing content for source '{display_name}'"""
 
         # Check for duplicated comment
         old_comments = [c.body for c in pr.get_issue_comments()]
