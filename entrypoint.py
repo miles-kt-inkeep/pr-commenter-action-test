@@ -86,8 +86,6 @@ def main():
         graphql_endpoint, headers=headers, json=query_payload
     )
 
-    print(query_response.json())
-
     display_name = query_response.json()["data"]["source"]["displayName"]
 
     if (
@@ -105,7 +103,7 @@ def main():
             print(f"No PR found for commit {sha}")
             return
 
-        new_comment = f"""![Inkeep Logo](https://storage.googleapis.com/public_inkeep_assetts/inkeep_logo_16h.png) [Inkeep](https://inkeep.com) AI search and chat service is syncing content for source '{display_name}'"""
+        new_comment = f"""![Inkeep Logo](https://storage.googleapis.com/public_inkeep_assetts/inkeep_logo_16h.png) [Inkeep](https://inkeep.com) AI search and chat service is syncing content for source '{query_response.text}'"""
 
         # Check for duplicated comment
         old_comments = [c.body for c in pr.get_issue_comments()]
