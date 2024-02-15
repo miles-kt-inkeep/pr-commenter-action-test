@@ -60,6 +60,8 @@ def main():
 
     source_id = get_actions_input("source-id")
     print(source_id)
+    print("Direct ENV:", os.getenv("INPUT_SOURCE_ID"))
+    print("Direct ENV 2:", os.getenv("INPUT_SOURCE-ID"))
     api_key = get_actions_input("api-key")
 
     # Prepare the JSON payload
@@ -82,6 +84,7 @@ def main():
     )
 
     mutation_result = mutation_response.json()
+    print(mutation_result)
 
     query_response = requests.post(
         graphql_endpoint, headers=headers, json=query_payload
