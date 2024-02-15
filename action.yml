@@ -10,9 +10,6 @@ inputs:
   source-id:
     description: 'The source id for which the source sync job needs to be created.'
     required: true
-  source-name: 
-    description: 'The source name for which the source sync job needs to be created.'
-    required: true
 runs:
   using: 'docker'
   image: 'Dockerfile'
