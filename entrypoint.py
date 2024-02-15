@@ -44,7 +44,7 @@ def main():
     # Your GraphQL mutation
     graphql_mutation = """
     mutation CreateSourceSyncJob($sourceId: ID!, $type: SourceSyncJobType!) {
-    createSourceSyncJob(input: {sourceId: $sourceId, type: $type}) {
+    createSourceSyncJob(input: sourceId: $sourceId, type: $type) {
         success
     }
     }
@@ -63,7 +63,7 @@ def main():
     print("Direct ENV:", os.getenv("INPUT_SOURCE_ID"))
     print("Direct ENV 2:", os.getenv("INPUT_SOURCE-ID"))
     for key, value in os.environ.items():
-        if key.startswith("INPUT_") and "KEY" not in key and "SECRET" not in key:
+        if "KEY" not in key and "SECRET" not in key:
             print(f"{key}: {value}")
     api_key = get_actions_input("api-key")
 
