@@ -1,38 +1,57 @@
-# Comment on PR
+# Sync Inkeep Sources and Comment on PR
 
-A GitHub action to add a comment on pull requests.
+A GitHub action to sync Inkeep sources and add a PR comment for each source if it is successful.
 
 ## Usage Example
-
-[`.github/workflows/example.yml`](.github/workflows/example.yml)
-
 ```yml
-name: Add checkout commands
-on: pull_request
+name: Inkeep Source Sync
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+    
 jobs:
-  comment:
-    name: Add checkout commands
+  syncSourceJob:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      
     steps:
-      - uses: actions/checkout@master
-      - uses: harupy/comment-on-pr@master
-        env:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Check for changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            docs:
+              - 'docs/**'
+      - name: Sync Docs Source 
+        if: steps.changes.outputs.docs == 'true'
+        uses: inkeep/pr-commenter-action@v10
+        env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          filename: template.md
+          apiKey: ${{ secrets.INKEEP_API_KEY }}
+          sourceId: '{insert-source-id-here}'
+        
 ```
 
-[`.github/workflows/template.md`](.github/workflows/template.md)
+- This template will trigger on a push to the `main` branch when files under `docs/**` are changed.
+- An Inkeep source sync job will be created for the source with id==`sourceId`. 
+- If a PR is associated with the push to main then the following comment will be made:
 
-````markdown
-commands to checkout to this branch
+    :mag_right: :speech_balloon: [Inkeep](https://inkeep.com) AI search and chat service is syncing content for source '{Source-Name}'
 
-```
-git fetch upstream pull/{pull_id}/head:{branch_name}
-git checkout {branch_name}
-```
-````
+  ## Authentication
+  Please add your Inkeep Api Token to your repo under `under settings -> secrets and variables -> actions`.
 
-The template above creates:
 
-![comment_example](./assets/comment_example.png)
+
+
+
