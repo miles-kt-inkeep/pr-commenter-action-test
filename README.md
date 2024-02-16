@@ -1,6 +1,6 @@
 # Sync Inkeep Sources and Comment on PR
 
-A GitHub action to sync Inkeep sources and add a PR comment for each source if it is successful.
+A GitHub action to sync Inkeep sources and add a PR comment for each successful sync.
 
 ## Usage Example
 ```yml
