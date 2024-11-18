@@ -64,7 +64,7 @@ def main():
         createSourceSyncJob(
             input: {
                 indexId: $indexId
-                sourceSyncJobID: $sourceSyncJobId
+                sourceSyncJobId: $sourceSyncJobId
                 job {
                     startTime: $startTime
                     status: QUEUED
@@ -148,6 +148,8 @@ def main():
     create_indexing_job_response = requests.post(
         graphql_endpoint, headers=headers, json=create_indexing_job_payload
     )
+
+    print(create_indexing_job_response.json())
 
     if (
         "data" in create_source_sync_mutation_result.keys()
