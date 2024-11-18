@@ -49,9 +49,9 @@ def main():
     # Your GraphQL mutation
     graphql_mutation = """
     mutation CreateSourceSyncJob($sourceId: ID!, $type: SourceSyncJobType! $statusMessage: String!) {
-    createSourceSyncJob(input: {sourceId: $sourceId, type: $type}) {
+    createSourceSyncJob(input: {sourceId: $sourceId, type: $type statusMessage: $statusMessage}) {
         success
-    }
+        }
     }
     """
     graphql_query = """
