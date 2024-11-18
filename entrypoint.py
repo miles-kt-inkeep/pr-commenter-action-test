@@ -34,7 +34,7 @@ def find_pr_by_sha(repo, sha):
     return None
 
 
-def get_changed_files_dump(sha):
+def get_changed_files_dump(sha, repo):
     changed_files = []
     commit = repo.get_commit(sha)
     # Loop through the changed files in the commit
@@ -65,7 +65,7 @@ def main():
     event = read_json(os.getenv("GITHUB_EVENT_PATH"))
     repo = gh.get_repo(event["repository"]["full_name"])
     sha = event.get("after")  # The commit SHA from the push event
-    files_changed_str = get_changed_files_dump(sha)
+    files_changed_str = get_changed_files_dump(sha, repo)
     source_id = get_actions_input("sourceId")
     api_key = get_actions_input("apiKey")
     # Prepare the JSON payload
