@@ -2,6 +2,7 @@ import json
 import os
 import requests
 from datetime import datetime
+
 from github import Github
 
 
@@ -60,17 +61,16 @@ def main():
     """
 
     create_indexing_job_mutation = """
-    mutation CreateIndexingJob($indexId: ID!, $sourceSyncJobId: ID! $statusMessage: String!, $startTime: DateTime!) {
-        createSourceSyncJob(
-            input: {
+    mutation CreateIndexingJob($indexId: ID! $sourceSyncJobId: ID! $statusMessage: String! $startTime: DateTime!){
+        createIndexingJob(input:{
                 indexId: $indexId
                 sourceSyncJobId: $sourceSyncJobId
-                job {
+                job: {
                     startTime: $startTime
                     status: QUEUED
                     statusMessage: $statusMessage
                 }
-        }) {
+        }){
             success
         }
     }
@@ -135,6 +135,7 @@ def main():
 
     index_id = query_response.json()["data"]["source"]["indexes"][0]["id"]
 
+    print("files changed: ", files_changed_str)
     create_indexing_job_payload = {
         "query": create_indexing_job_mutation,
         "variables": {
