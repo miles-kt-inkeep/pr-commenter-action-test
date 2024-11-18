@@ -120,7 +120,9 @@ def main():
 
     create_source_sync_mutation_result = create_source_sync_job_response.json()
 
-    source_sync_job_id = create_source_sync_mutation_result["data"]["job"]["id"]
+    source_sync_job_id = create_source_sync_mutation_result["data"][
+        "createSourceSyncJob"
+    ]["job"]["id"]
 
     query_response = requests.post(
         graphql_endpoint, headers=headers, json=get_source_payload
