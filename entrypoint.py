@@ -54,6 +54,7 @@ def main():
                 job{
                     id
                 }
+                success
             }
     }
     """
@@ -62,8 +63,8 @@ def main():
     mutation CreateIndexingJob($indexId: ID!, $sourceSyncJobId: ID! $statusMessage: String!, $startTime: DateTime!) {
         createSourceSyncJob(
             input: {
-                sourceId: $sourceId, 
-                type: $type
+                indexId: $indexId
+                sourceSyncJobID: $sourceSyncJobId
                 job {
                     startTime: $startTime
                     status: QUEUED
@@ -116,12 +117,15 @@ def main():
     create_source_sync_job_response = requests.post(
         graphql_endpoint, headers=headers, json=create_source_sync_job_payload
     )
-    mutation_result = create_source_sync_job_response.json()
-    print(mutation_result)
+
+    create_source_sync_mutation_result = create_source_sync_job_response.json()
+
+    source_sync_job_id = create_source_sync_mutation_result["data"]["job"]["id"]
+
     query_response = requests.post(
         graphql_endpoint, headers=headers, json=get_source_payload
     )
-    print(query_response.json())
+
     display_name = query_response.json()["data"]["source"]["displayName"]
     indexes = query_response.json()["data"]["source"]["indexes"]
     if not indexes:
@@ -135,6 +139,7 @@ def main():
             "indexId": index_id,
             "statusMessage": files_changed_str,
             "startTime": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+            "sourceSyncJobId": source_sync_job_id,
         },
     }
 
@@ -143,9 +148,10 @@ def main():
     )
 
     if (
-        "data" in mutation_result.keys()
-        and "createSourceSyncJob" in mutation_result["data"].keys()
-        and mutation_result["data"]["createSourceSyncJob"]["success"] is True
+        "data" in create_source_sync_mutation_result.keys()
+        and "createSourceSyncJob" in create_source_sync_mutation_result["data"].keys()
+        and create_source_sync_mutation_result["data"]["createSourceSyncJob"]["success"]
+        is True
     ):
         pr = find_pr_by_sha(repo, sha)
         if pr is None:
