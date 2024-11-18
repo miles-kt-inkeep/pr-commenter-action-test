@@ -1,6 +1,7 @@
 import json
 import os
 import requests
+from datetime import datetime
 from github import Github
 
 
@@ -47,17 +48,40 @@ def get_changed_files_dump(sha, repo):
 def main():
     graphql_endpoint = "https://api.management.inkeep.com/graphql"
     # Your GraphQL mutation
-    graphql_mutation = """
-    mutation CreateSourceSyncJob($sourceId: ID!, $type: SourceSyncJobType! $statusMessage: String!) {
-    createSourceSyncJob(input: {sourceId: $sourceId, type: $type statusMessage: $statusMessage}) {
-        success
+    create_source_sync_mutation = """
+    mutation CreateSourceSyncJob($sourceId: ID!, $type: SourceSyncJobType!) {
+        createSourceSyncJob(input: {sourceId: $sourceId, type: $type}) {
+                job{
+                    id
+                }
+            }
+    }
+    """
+
+    create_indexing_job_mutation = """
+    mutation CreateIndexingJob($indexId: ID!, $sourceSyncJobId: ID! $statusMessage: String!, $startTime: DateTime!) {
+        createSourceSyncJob(
+            input: {
+                sourceId: $sourceId, 
+                type: $type
+                job {
+                    startTime: $startTime
+                    status: QUEUED
+                    statusMessage: $statusMessage
+                }
+        }) {
+            success
         }
     }
     """
-    graphql_query = """
+
+    get_source_query = """
     query source($sourceId: ID!) {
         source(sourceId: $sourceId) {
             displayName
+            indexes {
+                id
+            }
         }
     }
     """
@@ -69,16 +93,17 @@ def main():
     source_id = get_actions_input("sourceId")
     api_key = get_actions_input("apiKey")
     # Prepare the JSON payload
-    json_payload = {
-        "query": graphql_mutation,
+    create_source_sync_job_payload = {
+        "query": create_source_sync_mutation,
         "variables": {
             "sourceId": source_id,
             "type": "INCREMENTAL",
             "statusMessage": files_changed_str,
         },
     }
-    query_payload = {
-        "query": graphql_query,
+
+    get_source_payload = {
+        "query": get_source_query,
         "variables": {"sourceId": source_id},
     }
     # Headers including the Authorization token
@@ -88,16 +113,35 @@ def main():
         "Imitated-Organization-Alias": "inkeepdev",
     }
     # Make the GraphQL request
-    mutation_response = requests.post(
-        graphql_endpoint, headers=headers, json=json_payload
+    create_source_sync_job_response = requests.post(
+        graphql_endpoint, headers=headers, json=create_source_sync_job_payload
     )
-    mutation_result = mutation_response.json()
+    mutation_result = create_source_sync_job_response.json()
     print(mutation_result)
     query_response = requests.post(
-        graphql_endpoint, headers=headers, json=query_payload
+        graphql_endpoint, headers=headers, json=get_source_payload
     )
     print(query_response.json())
     display_name = query_response.json()["data"]["source"]["displayName"]
+    indexes = query_response.json()["data"]["source"]["indexes"]
+    if not indexes:
+        raise Exception("No indexes found.")
+
+    index_id = query_response.json()["data"]["source"]["indexes"][0]["id"]
+
+    create_indexing_job_payload = {
+        "query": create_indexing_job_mutation,
+        "variables": {
+            "indexId": index_id,
+            "statusMessage": files_changed_str,
+            "startTime": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+        },
+    }
+
+    create_indexing_job_response = requests.post(
+        graphql_endpoint, headers=headers, json=create_indexing_job_payload
+    )
+
     if (
         "data" in mutation_result.keys()
         and "createSourceSyncJob" in mutation_result["data"].keys()
